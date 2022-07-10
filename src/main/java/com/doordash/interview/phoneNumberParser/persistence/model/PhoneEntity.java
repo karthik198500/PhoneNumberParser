@@ -1,4 +1,4 @@
-package com.doordash.interview.phoneNumberParser.model;
+package com.doordash.interview.phoneNumberParser.persistence.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -6,25 +6,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
-import java.math.BigInteger;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @IdClass(PhoneNumberId.class)
-public class PhoneInfo {
+public class PhoneEntity {
 
     @Id
-    @JsonProperty("phone_number")
     private String phoneNumber;
 
-
     @Id
-    @JsonProperty("phone_type")
     private String phoneNumberType;
 
     private Integer occurrences = new Integer(0);

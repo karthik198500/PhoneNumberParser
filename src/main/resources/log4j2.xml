@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug">
+    <Properties>
+        <Property name="basePath">/Users/kkasiraju/dev/MyMusings/PhoneNumberParser/logs</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %t [%X{requestId}] %-5p %c{1}(%L):%m%n</pattern>
+            </PatternLayout>
+        </Console>
+        <RollingFile name="RollingFile" fileName="./logs/phoneservicelog.log"
+                     filePattern="./logs/$${date:yyyy-MM}/phoneservicelog-%d{-dd-MMMM-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %t [%X{requestId}] %-5p %c{1}(%L):%m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- rollover on startup, daily and when the file reaches
+                    10 MegaBytes -->
+                <!--<OnStartupTriggeringPolicy />-->
+                <SizeBasedTriggeringPolicy size="250 MB" />
+                <TimeBasedTriggeringPolicy />
+                <DefaultRolloverStrategy max="5"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="RollingFile" />
+        </Root>
+    </Loggers>
+</Configuration>

@@ -1,23 +1,23 @@
 package com.doordash.interview.phoneNumberParser.controller;
 
-import com.doordash.interview.phoneNumberParser.model.PhoneInfo;
-import com.doordash.interview.phoneNumberParser.model.PhoneInfoResult;
-import com.doordash.interview.phoneNumberParser.model.PhoneNumberId;
+import com.doordash.interview.phoneNumberParser.dto.PhoneInfoResult;
+import com.doordash.interview.phoneNumberParser.dto.PhoneNumberDTO;
+import com.doordash.interview.phoneNumberParser.dto.PhoneNumberDTOMapper;
 import com.doordash.interview.phoneNumberParser.parser.GenericPhoneNumberParserImpl;
 import com.doordash.interview.phoneNumberParser.parser.PhoneNumberParser;
-import com.doordash.interview.phoneNumberParser.repository.PhoneNumberRepository;
+import com.doordash.interview.phoneNumberParser.persistence.model.PhoneEntity;
+import com.doordash.interview.phoneNumberParser.persistence.model.PhoneNumberId;
+import com.doordash.interview.phoneNumberParser.persistence.repository.PhoneNumberRepository;
 import com.doordash.interview.phoneNumberParser.request.RawPhoneData;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,41 +32,55 @@ import static com.doordash.interview.phoneNumberParser.util.Constants.*;
 @Log4j2
 public class PhoneNumberController {
 
-    private final PhoneNumberRepository phoneNumberRepository;
+    private static final Logger logger = LoggerFactory.getLogger(PhoneNumberController.class);
 
-    public PhoneNumberController(PhoneNumberRepository phoneNumberRepository) {
+    private final PhoneNumberRepository phoneNumberRepository;
+    private final PhoneNumberDTOMapper phoneNumberDTOMapper;
+
+    public PhoneNumberController(PhoneNumberRepository phoneNumberRepository, PhoneNumberDTOMapper phoneNumberDTOMapper) {
         this.phoneNumberRepository = phoneNumberRepository;
+        this.phoneNumberDTOMapper = phoneNumberDTOMapper;
     }
 
-    @ApiOperation(value = "Phone Number Parser", response = String.class)
+
+    @ApiOperation(value = "Add Phone Number", response = String.class)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PhoneInfoResult> addPhoneNumbers(
             @RequestBody
             @Validated RawPhoneData rawPhoneNumberInfo) {
-        log.info("This is a post request");
+        logger.info("Phone Parser API Invoked "+rawPhoneNumberInfo);
         PhoneNumberParser phoneNumberParser = new GenericPhoneNumberParserImpl();
-        PhoneInfoResult phoneInfoResult = phoneNumberParser.parseRawInfo(rawPhoneNumberInfo);
-        if(null!= phoneInfoResult && null!= phoneInfoResult.getResults()){
-            List<PhoneInfo> results = phoneInfoResult.getResults();
-            for (PhoneInfo phoneInfo: results) {
-                Optional<PhoneInfo> optionalPhoneInfo = phoneNumberRepository.findById(new PhoneNumberId(phoneInfo.getPhoneNumber(), phoneInfo.getPhoneNumberType()));
+        List<PhoneEntity> phoneEntities = phoneNumberParser.parseRawInfo(rawPhoneNumberInfo);
+        if(null!= phoneEntities && !phoneEntities.isEmpty()){
+            for (PhoneEntity phoneEntity : phoneEntities) {
+                    Optional<PhoneEntity> optionalPhoneInfo = phoneNumberRepository.findById(new PhoneNumberId(phoneEntity.getPhoneNumber(), phoneEntity.getPhoneNumberType()));
                 if(optionalPhoneInfo.isPresent()){
-                    phoneInfo.setOccurrences(optionalPhoneInfo.get().getOccurrences()+1);
-                    phoneNumberRepository.save(phoneInfo);
-                    phoneNumberRepository.save(phoneInfo);
+                    phoneEntity.setOccurrences(optionalPhoneInfo.get().getOccurrences()+1);
+                    phoneNumberRepository.save(phoneEntity);
                 }else{
-                    phoneInfo.setOccurrences(1);
-                    phoneNumberRepository.save(phoneInfo);
+                    phoneEntity.setOccurrences(1);
+                    phoneNumberRepository.save(phoneEntity);
                 }
             }
         }
+        List<PhoneNumberDTO> phoneNumberDTOList = new ArrayList<>();
+        for(PhoneEntity phoneEntity:phoneEntities){
+            phoneNumberDTOList.add(phoneNumberDTOMapper.convertPhoneEntityToPhoneNumberDTO(phoneEntity));
+        }
+        PhoneInfoResult phoneInfoResult = new PhoneInfoResult();
+        phoneInfoResult.setResults(phoneNumberDTOList);
+        logger.info(phoneNumberDTOList.toString());
+
         return  ResponseEntity.ok(phoneInfoResult);
     }
 
+
+
     @ApiOperation(value = "Phone Number Parser", response = String.class)
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> homePage() {
-        log.info("This is sample message");
-        return  ResponseEntity.ok("response");
+    public ResponseEntity<String> welcomePage() {
+        logger.info("Phone Parser Welcome page  ");
+        return  ResponseEntity.ok("Welcome to Phone Number Parser");
+
     }
 }
