@@ -6,7 +6,6 @@ import com.doordash.interview.phoneNumberParser.persistence.model.PhoneEntity;
 import com.doordash.interview.phoneNumberParser.persistence.repository.PhoneNumberRepository;
 import com.doordash.interview.phoneNumberParser.request.RawPhoneData;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,12 +20,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -56,7 +52,7 @@ class PhoneNumberControllerTest {
     private PhoneNumberDTO phoneNumberDTO;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         MockitoAnnotations.initMocks(this);
         phoneEntity = new PhoneEntity();
         phoneEntity.setPhoneNumber("234234234");
@@ -70,8 +66,8 @@ class PhoneNumberControllerTest {
     }
 
     @Test
-    @WithMockUser(username="admin", password = "password")
-    void homePage() throws Exception{
+    @WithMockUser(username = "admin", password = "password")
+    void homePage() throws Exception {
         this.mockMvc.perform(get("/api/v1/phone-number-parser"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -79,10 +75,14 @@ class PhoneNumberControllerTest {
     }
 
 
-
+    /**
+     * No Data throws an exception
+     *
+     * @throws Exception
+     */
     @Test
-    @WithMockUser(username="admin", password = "password")
-    void addPhoneSuccess() throws Exception{
+    @WithMockUser(username = "admin", password = "password")
+    void addPhoneFailure() throws Exception {
 
         PhoneNumberDTO phoneNumberDTO = new PhoneNumberDTO();
         phoneNumberDTO.setPhoneNumber("234234234");
@@ -91,25 +91,42 @@ class PhoneNumberControllerTest {
         when(phoneNumberDTOMapper.convertPhoneEntityToPhoneNumberDTO(Mockito.any())).thenReturn(phoneNumberDTO);
         when(phoneNumberRepository.findById(Mockito.any())).thenReturn(Optional.of(phoneEntity));
         when(phoneNumberRepository.save(Mockito.any())).thenReturn(phoneEntity);
+        RawPhoneData rawPhoneData = new RawPhoneData();
+        rawPhoneData.setRawPhoneNumbers("(Home)415-415-4155 (Cell) 415-123-4561 (Business) 115-514-5145");
+        this.mockMvc.perform(post("/api/v1/phone-number-parser"))
+                .andDo(print())
+                .andExpect(status().isUnsupportedMediaType());
 
+    }
 
+    /**
+     *
+     * Tests a succesful scenario of API invocation.
+     * @throws Exception
+     */
+    @Test
+    @WithMockUser(username = "admin", password = "password")
+    void addPhoneSuccess() throws Exception {
 
+        PhoneNumberDTO phoneNumberDTO = new PhoneNumberDTO();
+        phoneNumberDTO.setPhoneNumber("234234234");
+        phoneNumberDTO.setPhoneNumberType("Cell");
 
-
+        when(phoneNumberDTOMapper.convertPhoneEntityToPhoneNumberDTO(Mockito.any())).thenReturn(phoneNumberDTO);
+        when(phoneNumberRepository.findById(Mockito.any())).thenReturn(Optional.of(phoneEntity));
+        when(phoneNumberRepository.save(Mockito.any())).thenReturn(phoneEntity);
         RawPhoneData rawPhoneData = new RawPhoneData();
         rawPhoneData.setRawPhoneNumbers("(Home)415-415-4155 (Cell) 415-123-4561 (Business) 115-514-5145");
         ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            this.mockMvc.perform(post("/api/v1/phone-number-parser")
-                            .content(        objectMapper.writeValueAsString(rawPhoneData))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andDo(print())
-                    .andExpect(status().isOk())
-                    .andExpect(content().json("{\"results\":[{\"occurrences\":null,\"phone_number\":\"234234234\",\"phone_type\":\"Cell\"},{\"occurrences\":null,\"phone_number\":\"234234234\",\"phone_type\":\"Cell\"},{\"occurrences\":null,\"phone_number\":\"234234234\",\"phone_type\":\"Cell\"}]}"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        this.mockMvc.perform(get("/api/v1/phone-number-parser")
+
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"results\":[{\"occurrences\":null,\"phone_number\":\"234234234\",\"phone_type\":\"Cell\"},{\"occurrences\":null,\"phone_number\":\"234234234\",\"phone_type\":\"Cell\"},{\"occurrences\":null,\"phone_number\":\"234234234\",\"phone_type\":\"Cell\"}]}"));
+
     }
 
     public static String asJsonString(final Object obj) {

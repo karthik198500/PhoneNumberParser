@@ -112,6 +112,13 @@ I am assuming this service is mostly used by other micro services so not thinkin
 * Use WebMvcTest to Mock the server and context.
 
 # Improvements
+* validation of the input data.
+* Suppot for more types of data currently we have Home and Cell. 
+* Phone number being unique, phone number validation API based on country code. Currently our API accepts phone number 
+ of same types.
+* For muliple merchants if the format of the input API changes, we can come up with a new parser which can handle the
+ incoming data. If that formatter ID is passed as part of the input, then we can use either factory pattern to decide
+ the formatter to use for parsing the input data.
 * Circuit breaker Pattern for rate limiting.
 * We can use HATEOAS principles and construct production options as part of PhoneNumber DTO. Will be used to navigate
   via the links.
@@ -119,6 +126,7 @@ I am assuming this service is mostly used by other micro services so not thinkin
 * We can use Reactor pattern for HTTP calls to make it asynchronous and we can reactor supported databases
   like POSTGRess which supports both ACID, scalabiliy and reactor capabilites.
 * Common design patterns that can be included in the service based on the requirements.
+* 
 
 ### Design patterns that can be implemented using Resilience4j
 * Circuit breaker pattern
@@ -263,14 +271,3 @@ for production application.
 * Some of the docker commands to containarize the code. I do not have docker due to new restrictions on the docker dusktop
   but just listing down how we can build a docker file and deploy it across.
 
-* docker ps -a
-* docker stop
-* docker system prune
-* docker image rm Phoneservice:latest
-* docker image rm
-* docker build -t karthik198500/Phoneservice:latest .
-* docker run -p 8082:8082 -e "SPRING_PROFILES_ACTIVE=prod" karthik198500/Phoneservice:latest
-* docker rmi Phoneservice
-* docker tag Phoneservice:latest karthik198500/Phoneservice:latest
-* docker push karthik198500/Phoneservice:latest
-* docker run -p8082:8082 karthik198500/Phoneservice:latest

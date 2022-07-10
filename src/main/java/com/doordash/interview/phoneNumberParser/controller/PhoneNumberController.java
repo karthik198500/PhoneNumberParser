@@ -42,6 +42,10 @@ public class PhoneNumberController {
         this.phoneNumberDTOMapper = phoneNumberDTOMapper;
     }
 
+    /*
+    * Generally will map general CRUD operations to the REST POST GET PUT AND DELETE
+    * */
+
 
     @ApiOperation(value = "Add Phone Number", response = String.class)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -69,12 +73,14 @@ public class PhoneNumberController {
         }
         PhoneInfoResult phoneInfoResult = new PhoneInfoResult();
         phoneInfoResult.setResults(phoneNumberDTOList);
-        logger.info(phoneNumberDTOList.toString());
-
+        logger.info("Output Result "+phoneNumberDTOList.toString());
         return  ResponseEntity.ok(phoneInfoResult);
     }
 
 
+/*
+* Generic URL to test the working of the application. This can be deleted in production grade application.
+* */
 
     @ApiOperation(value = "Phone Number Parser", response = String.class)
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)

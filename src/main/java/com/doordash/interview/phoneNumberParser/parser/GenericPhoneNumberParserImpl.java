@@ -23,6 +23,10 @@ public class GenericPhoneNumberParserImpl implements PhoneNumberParser {
         return parse(rawPhoneNumbers);
     }
 
+    /**
+     * This function parses the given input in to the required output format.
+     * I haven't done any validation logic or throw errors for invalid or incorrect data.
+     */
     private List<PhoneEntity> parse(String rawPhoneNumbers) {
         Stack<Character> stack = new Stack();
         List<PhoneEntity> results = new ArrayList<>();
@@ -70,7 +74,7 @@ public class GenericPhoneNumberParserImpl implements PhoneNumberParser {
             logger.debug("Adding phone number "+str.toString());
             results.add(phoneEntity);
         } catch (Exception e) {
-            throw new RuntimeException("Error while parsing the Input. Check the input "+e.getMessage(),e);
+            throw new RuntimeException("Invalid format of Input Data."+e.getMessage(),e);
         }
         return results;
     }
